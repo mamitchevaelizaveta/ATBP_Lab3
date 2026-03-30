@@ -43,7 +43,6 @@ const AgeVerification = () => {
   const [offlineMode, setOfflineMode] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
-  // Загружаем список доступных фильмов при монтировании
   useEffect(() => {
     loadMovies();
   }, []);
@@ -60,17 +59,14 @@ const AgeVerification = () => {
     }
   };
 
-  // Валидация полей
   const validateInputs = () => {
     setError(null);
 
-    // Проверка ID фильма
     if (!movieId.trim()) {
       setError('Введите ID фильма');
       return false;
     }
 
-    // Проверка возраста
     if (!age.trim()) {
       setError('Введите возраст зрителя');
       return false;
@@ -129,13 +125,11 @@ const AgeVerification = () => {
     setError(null);
   };
 
-  // Быстрый выбор фильма из списка
   const handleQuickSelect = (movie) => {
     setMovieId(movie.id);
     setError(null);
   };
 
-  // Определяем цвет чипа в зависимости от возрастного рейтинга
   const getChipColor = (ageRating) => {
     if (ageRating === 0) return 'success';
     if (ageRating === 6) return 'info';
@@ -180,27 +174,16 @@ const AgeVerification = () => {
             }}
           >
             <MovieIcon fontSize="large" color="primary" />
-            Проверка возрастного ценза
-          </Typography>
-
-          <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
-            Проверьте, имеет ли зритель доступ к фильму
-            {offlineMode && (
-              <Chip
-                size="small"
-                label="Офлайн режим"
-                color="warning"
-                variant="outlined"
-                sx={{ ml: 1 }}
-                icon={<CloudOffIcon />}
-              />
-            )}
+            Проверка соответствия возрастному ограничению
           </Typography>
 
           <form onSubmit={handleSubmit}>
             <Stack spacing={3}>
               <Box>
                 <TextField
+                  data-testid="movie-id-input"
+                  id="movieId"
+                  name="movieId"
                   fullWidth
                   label="ID фильма"
                   variant="outlined"
@@ -229,7 +212,7 @@ const AgeVerification = () => {
                   <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
                     Доступные фильмы:
                   </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }} data-testid="movies-list">
                     {availableMovies.map((movie) => (
                       <Tooltip
                         key={movie.id}
@@ -238,6 +221,7 @@ const AgeVerification = () => {
                         placement="top"
                       >
                         <Chip
+                          data-testid={`movie-chip-${movie.id}`}
                           label={`${movie.title} (${movie.ageRating}+)`}
                           size="medium"
                           onClick={() => handleQuickSelect(movie)}
@@ -258,6 +242,9 @@ const AgeVerification = () => {
               </Box>
 
               <TextField
+                data-testid="age-input"
+                id="age"
+                name="age"
                 fullWidth
                 label="Возраст зрителя"
                 type="number"
@@ -278,6 +265,9 @@ const AgeVerification = () => {
               <FormControlLabel
                 control={
                   <Checkbox
+                    data-testid="with-adult-checkbox"
+                    id="withAdult"
+                    name="withAdult"
                     checked={withAdult}
                     onChange={(e) => setWithAdult(e.target.checked)}
                     color="primary"
@@ -294,13 +284,14 @@ const AgeVerification = () => {
               />
 
               {error && (
-                <Alert severity="error" sx={{ mt: 1 }}>
+                <Alert data-testid="validation-error" severity="error" sx={{ mt: 1 }}>
                   {error}
                 </Alert>
               )}
 
               <Stack direction="row" spacing={2}>
                 <Button
+                  data-testid="submit-button"
                   type="submit"
                   variant="contained"
                   fullWidth
@@ -311,6 +302,7 @@ const AgeVerification = () => {
                   {loading ? 'Проверка...' : 'Проверить доступ'}
                 </Button>
                 <Button
+                  data-testid="clear-button"
                   type="button"
                   variant="outlined"
                   onClick={handleClear}
@@ -324,14 +316,22 @@ const AgeVerification = () => {
           </form>
 
           {result && (
-            <Card sx={{
-              mt: 3,
-              bgcolor: result.allowed ? '#e8f5e9' : '#ffebee',
-              borderLeft: result.allowed ? '4px solid #4caf50' : '4px solid #f44336'
-            }}>
+            <Card
+              data-testid="result-card"
+              sx={{
+                mt: 3,
+                bgcolor: result.allowed ? '#e8f5e9' : '#ffebee',
+                borderLeft: result.allowed ? '4px solid #4caf50' : '4px solid #f44336'
+              }}
+            >
               <CardContent>
                 <Stack spacing={1.5}>
-                  <Typography variant="h6" align="center" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                  <Typography
+                    data-testid="result-message"
+                    variant="h6"
+                    align="center"
+                    sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}
+                  >
                     {result.allowed ? (
                       <CheckIcon color="success" />
                     ) : (
@@ -345,6 +345,7 @@ const AgeVerification = () => {
                   </Typography>
 
                   <Alert
+                    data-testid="result-reason"
                     severity={result.allowed ? "success" : "error"}
                     sx={{ mt: 1 }}
                     icon={result.allowed ? <CheckIcon /> : <WarningIcon />}
@@ -354,13 +355,13 @@ const AgeVerification = () => {
 
                   {!result.allowed && result.ageRating <= 12 && (
                     <Typography variant="caption" color="warning.main" align="center" sx={{ mt: 1 }}>
-                      💡 Для фильмов категорий 0+, 6+, 12+ доступ можно получить при наличии сопровождения взрослых
+                      Для фильмов категорий 0+, 6+, 12+ доступ можно получить при наличии сопровождения взрослых
                     </Typography>
                   )}
 
                   {!result.allowed && result.ageRating >= 16 && (
                     <Typography variant="caption" color="error.main" align="center" sx={{ mt: 1 }}>
-                      ⚠️ На фильмы категорий 16+ и 18+ сопровождение взрослых не распространяется
+                      На фильмы категорий 16+ и 18+ сопровождение взрослых не распространяется
                     </Typography>
                   )}
                 </Stack>
@@ -369,20 +370,20 @@ const AgeVerification = () => {
           )}
 
           <Box sx={{ mt: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
-                      <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontWeight: 'bold' }}>
-                        <InfoIcon fontSize="small" color="primary" />
-                        Правила проверки доступа для разных возрастных ограничений:
-                      </Typography>
-                      <Typography variant="caption" component="div" color="text.secondary" sx={{ pl: 3, mt: 1 }}>
-                        <strong>0+, 6+, 12+</strong> - доступен, если:<br />
-                        &nbsp;&nbsp;возраст зрителя соответствует возрастному ограничению <strong>ИЛИ</strong><br />
-                        &nbsp;&nbsp;зритель с сопровождением взрослого<br />
-                        <strong>16+</strong> - строго с 16 лет<br />
-                        <strong>18+</strong> - строго с 18 лет<br />
-                      </Typography>
-                    </Box>
-                  </Paper>
-                </Box>
+            <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontWeight: 'bold' }}>
+              <InfoIcon fontSize="small" color="primary" />
+              Правила проверки доступа для разных возрастных ограничений:
+            </Typography>
+            <Typography variant="caption" component="div" color="text.secondary" sx={{ pl: 3, mt: 1 }}>
+              <strong>0+, 6+, 12+</strong> - доступен, если:<br />
+              &nbsp;&nbsp;возраст зрителя соответствует возрастному ограничению <strong>ИЛИ</strong><br />
+              &nbsp;&nbsp;зритель с сопровождением взрослого<br />
+              <strong>16+</strong> - строго с 16 лет<br />
+              <strong>18+</strong> - строго с 18 лет<br />
+            </Typography>
+          </Box>
+        </Paper>
+      </Box>
     </Container>
   );
 };

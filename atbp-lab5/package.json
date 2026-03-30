@@ -7,11 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "test:ui": "npx playwright test",
     "test:ui:headed": "npx playwright test --headed",
     "test:ui:debug": "npx playwright test --debug",
-    "test:ui:report": "npx playwright show-report"
+    "test:ui:report": "npx playwright show-report",
+    "test:ui:chromium": "npx playwright test --project=chromium",
+    "test:ui:firefox": "npx playwright test --project=firefox",
+    "test:ui:webkit": "npx playwright test --project=webkit"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",

@@ -11,6 +11,8 @@ import com.example.controller.api.MovieInfoApi;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 public class MovieInfoController implements MovieInfoApi {
 
@@ -25,6 +27,10 @@ public class MovieInfoController implements MovieInfoApi {
 
     public ResponseEntity<MovieDto> getMovieById(String movieId) throws MovieRatingNotFoundException {
         return ResponseEntity.ok(mapper.toMovieDto(imdbService.getMovie(movieId)));
+    }
+
+    public ResponseEntity<List<MovieDto>> getMovies() throws MovieRatingNotFoundException {
+        return ResponseEntity.ok(mapper.toMovieDto(imdbService.getAllMovies()));
     }
 
 }

@@ -5,29 +5,32 @@ import com.example.Lab3.exception.MovieRatingNotFoundException;
 import com.example.Lab3.model.Movie;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 @Component
 public class IMDBServiceImpl implements IMDBService {
 
-    // фейковая реализация
+    // Список фильмов
+    private final List<Movie> movies = List.of(
+            new Movie("tt444", "Дюна", 12),
+            new Movie("tt555", "Фильм для 16+", 16)
+    );
 
     @Override
     public Movie getMovie(String movieId) throws MovieRatingNotFoundException {
-        return Stream.of("tt444")
-                .filter(id -> id.equals(movieId))
+        return movies.stream()
+                .filter(movie -> movie.getMovieId().equals(movieId))
                 .findFirst()
-                .map(id -> new Movie("tt444", "Дюна", 12))
                 .orElseThrow(() -> new MovieRatingNotFoundException("Фильм с id " + movieId + " не найден"));
     }
 
     @Override
     public Integer getMovieRating(String movieId) throws MovieRatingNotFoundException {
-        return Stream.of("tt444")
-                .filter(id -> id.equals(movieId))
+        return movies.stream()
+                .filter(movie -> movie.getMovieId().equals(movieId))
+                .map(Movie::getMovieRating)
                 .findFirst()
-                .map(id -> 12)
                 .orElseThrow(() -> new MovieRatingNotFoundException("Фильм с id " + movieId + " не найден"));
     }
-
 }

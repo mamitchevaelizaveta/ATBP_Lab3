@@ -7,6 +7,7 @@ import com.example.Lab3.model.Viewer;
 import com.example.controller.api.CinemaInfoApi;
 import com.example.controller.api.ViewerDto;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -21,6 +22,7 @@ public class CinemaInfoController implements CinemaInfoApi {
         this.checker = checker;
     }
 
+    @PostMapping("/api/cinema/check-access")
     public ResponseEntity<String> checkAccess(ViewerDto viewerDto){
         Viewer viewer = mapper.fromViewerDto(viewerDto);
         return ResponseEntity.ok(checker.checkViewerAccess(viewer));

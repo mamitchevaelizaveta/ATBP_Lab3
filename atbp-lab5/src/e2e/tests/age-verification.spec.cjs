@@ -1,4 +1,3 @@
-// e2e/tests/age-verification.spec.cjs
 const { test, expect } = require('@playwright/test');
 const AgeVerificationPage = require('../pages/AgeVerificationPage.cjs');
 

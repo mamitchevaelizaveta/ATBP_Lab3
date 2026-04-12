@@ -1,9 +1,7 @@
 // src/services/api.js
-// Сервис для работы с API
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
-// Моковые данные о фильмах
 const mockMovies = {
   'tt001': { movieId: 'tt001', movieName: 'Приключения Буратино', movieRating: 0 },
   'tt002': { movieId: 'tt002', movieName: 'В поисках Немо', movieRating: 6 },
@@ -17,12 +15,10 @@ const mockMovies = {
 // Функция для проверки доступа к фильму через API
 export const checkMovieAccess = async (movieId, age, withAdult) => {
   try {
-    // Формируем тело запроса в соответствии с OpenAPI спецификацией
-    // Спецификация ожидает поля: movieId, viewerAge, hasAccompanying
     const requestBody = {
       movieId: movieId.trim(),
-      viewerAge: age,           // было age, стало viewerAge
-      hasAccompanying: withAdult // было withAdult, стало hasAccompanying
+      viewerAge: age,
+      hasAccompanying: withAdult
     };
 
     console.log('Отправляем запрос на бэкенд:', requestBody);
@@ -49,13 +45,11 @@ export const checkMovieAccess = async (movieId, age, withAdult) => {
       throw new Error(errorMessage);
     }
 
-    // Ваш API возвращает строку "разрешено" или "запрещено"
     const result = await response.text();
     const allowed = result === "разрешено";
 
     console.log('Ответ от бэкенда:', result);
 
-    // Получаем информацию о фильме для отображения
     let movieTitle = "Неизвестный фильм";
     let ageRating = 0;
 
@@ -89,7 +83,6 @@ export const checkMovieAccess = async (movieId, age, withAdult) => {
   }
 };
 
-// Функция для получения информации о конкретном фильме
 export const getMovieInfo = async (movieId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/movies/${movieId}`, {
@@ -121,7 +114,6 @@ export const getMovieInfo = async (movieId) => {
   }
 };
 
-// Функция для получения списка всех фильмов
 export const getAvailableMovies = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/movies`, {
@@ -138,7 +130,6 @@ export const getAvailableMovies = async () => {
     const data = await response.json();
     console.log('Получены фильмы с бэкенда:', data);
 
-    // Адаптируем данные под ожидаемый фронтендом формат
     return data.map(movie => ({
       id: movie.movieId,
       title: movie.movieName,
@@ -154,7 +145,6 @@ export const getAvailableMovies = async () => {
   }
 };
 
-// Моковая функция для разработки
 const mockCheckMovieAccess = async (movieId, age, withAdult) => {
   await new Promise(resolve => setTimeout(resolve, 500));
 

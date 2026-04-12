@@ -1,10 +1,8 @@
-// e2e/pages/AgeVerificationPage.cjs
 class AgeVerificationPage {
   constructor(page) {
     this.page = page;
     this.baseUrl = 'http://localhost:5173';
 
-    // Используем id элементов
     this.movieIdInput = '#movieId';
     this.ageInput = '#age';
     this.withAdultCheckbox = '#withAdult';

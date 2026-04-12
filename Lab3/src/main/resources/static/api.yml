@@ -16,7 +16,7 @@ tags:
 paths:
   /api/movies:
     get:
-      summary: Получить информацию по фильму
+      summary: Получить все фильмы
       operationId: getMovies
       tags:
         - MovieInfo

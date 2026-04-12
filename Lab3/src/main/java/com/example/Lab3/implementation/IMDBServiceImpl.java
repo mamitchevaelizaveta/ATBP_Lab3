@@ -6,6 +6,7 @@ import com.example.Lab3.model.Movie;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 @Component
 public class IMDBServiceImpl implements IMDBService {
@@ -32,4 +33,5 @@ public class IMDBServiceImpl implements IMDBService {
                 .findFirst()
                 .orElseThrow(() -> new MovieRatingNotFoundException("Фильм с id " + movieId + " не найден"));
     }
+
 }

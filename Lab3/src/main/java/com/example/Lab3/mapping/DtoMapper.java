@@ -10,6 +10,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 
+import java.util.List;
+
 @Mapper(
         componentModel = "spring",
         unmappedTargetPolicy = ReportingPolicy.ERROR
@@ -26,6 +28,8 @@ public interface DtoMapper {
     @Mapping(target = "movieName", source = "movieName")
     @Mapping(target = "movieRating", source = "movieRating")
     MovieDto toMovieDto(Movie movie);
+
+    List<MovieDto> toMovieDto(List<Movie> list);
 
     // маппинг посетителей
     @Mapping(target = "viewerAge", source = "viewerAge")

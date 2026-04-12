@@ -1,0 +1,37 @@
+{
+  "name": "atbp-lab5",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test:ui": "npx playwright test",
+    "test:ui:headed": "npx playwright test --headed",
+    "test:ui:debug": "npx playwright test --debug",
+    "test:ui:report": "npx playwright show-report",
+    "test:ui:chromium": "npx playwright test --project=chromium",
+    "test:ui:firefox": "npx playwright test --project=firefox",
+    "test:ui:webkit": "npx playwright test --project=webkit"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.14.19",
+    "@mui/material": "^5.14.20",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "eslint": "^8.55.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.5",
+    "vite": "^5.0.8"
+  }
+}

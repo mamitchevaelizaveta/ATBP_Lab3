@@ -1,19 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.4</version>
-        <relativePath/>
-    </parent>
-    <groupId>com.example</groupId>
-    <artifactId>Lab3</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-
-    <properties>
-        <java.version>17</java.version>
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>4.0.4</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.example</groupId>
+	<artifactId>Lab3</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name/>
+	<description/>
+	<url/>
+	<licenses>
+		<license/>
+	</licenses>
+	<developers>
+		<developer/>
+	</developers>
+	<scm>
+		<connection/>
+		<developerConnection/>
+		<tag/>
+		<url/>
+	</scm>
+	<properties>
+		<java.version>17</java.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <cucumber.version>7.18.1</cucumber.version>
     </properties>
@@ -58,14 +72,12 @@
             <version>2.2.30</version>
         </dependency>
 
-        <!-- MapStruct -->
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
             <version>${mapstruct.version}</version>
         </dependency>
 
-        <!-- Servlet API -->
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
@@ -103,7 +115,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- JUnit Platform Suite (для запуска Cucumber) -->
         <dependency>
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-suite</artifactId>
@@ -117,6 +128,7 @@
                 <directory>${project.basedir}/src/main/resources</directory>
                 <filtering>true</filtering>
                 <includes>
+                    <!--форматы файлов-->
                     <include>**/*.yml</include>
                     <include>**/*.xml</include>
                     <include>**/*.txt</include>
@@ -134,13 +146,11 @@
                 </includes>
             </resource>
         </resources>
-
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -180,7 +190,9 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/static/api.yml</inputSpec>
+                            <inputSpec>
+                                ${project.basedir}/src/main/resources/static/api.yml
+                            </inputSpec>
                             <generatorName>spring</generatorName>
                             <library>spring-boot</library>
                             <apiPackage>com.example.controller.api</apiPackage>
@@ -205,6 +217,7 @@
                             <typeMappings>
                                 <typeMapping>Double=java.math.BigDecimal</typeMapping>
                             </typeMappings>
+                            <generateApiTests>false</generateApiTests>
                             <output>${project.basedir}/target/generated-sources/swagger</output>
                         </configuration>
                     </execution>
@@ -212,4 +225,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>

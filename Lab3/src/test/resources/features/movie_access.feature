@@ -11,11 +11,11 @@ Feature: Проверка возрастного доступа к фильму
 
     Examples:
       | movieId | age | withAdult | expectedResult |
-      | tt444   | 13  | false     | разрешено      |
-      | tt444   | 11  | false     | запрещено      |
-      | tt444   | 11  | true      | разрешено      |
-      | tt555   | 16  | false     | разрешено      |
-      | tt555   | 15  | false     | запрещено      |
+      | tt003   | 13  | false     | разрешено      |
+      | tt003   | 11  | false     | запрещено      |
+      | tt003   | 11  | true      | разрешено      |
+      | tt555   | 18  | false     | разрешено      |
+      | tt555   | 17  | false     | запрещено      |
       | tt555   | 10  | true      | запрещено      |
 
   Scenario: Фильм не найден

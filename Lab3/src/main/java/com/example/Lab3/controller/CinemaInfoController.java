@@ -1,6 +1,5 @@
 package com.example.Lab3.controller;
 
-import com.example.Lab3.FilmRatingAgeChecker;
 import com.example.Lab3.implementation.ViewerServiceImpl;
 import com.example.Lab3.mapping.DtoMapper;
 import com.example.Lab3.model.Viewer;

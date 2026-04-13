@@ -14,30 +14,6 @@ tags:
     description: API кинотеатра
 
 paths:
-  /api/movies/:
-    get:
-      summary: Получить информацию по фильму
-      operationId: getMovies
-      tags:
-        - MovieInfo
-      responses:
-        '200':
-          description: 'Фильмы: '
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/movie'
-        '404':
-          description: Фильмы не найдены
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
   /api/movies:
     get:
       summary: Получить все фильмы

@@ -1,8 +1,8 @@
-// atbp-lab5/playwright.config.cjs
+// atbp-lab5/src/playwright.config.cjs
 const { defineConfig, devices } = require('@playwright/test');
 
 module.exports = defineConfig({
-  testDir: './src/e2e/tests',
+  testDir: './e2e/tests',  // без src/
   timeout: 30000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -10,9 +10,9 @@ module.exports = defineConfig({
   workers: process.env.CI ? 1 : undefined,
 
   reporter: [
-    ['html', { outputFolder: 'playwright-report' }],
-    ['json', { outputFile: 'test-results/results.json' }],
-    ['junit', { outputFile: 'test-results/junit.xml' }],
+    ['html', { outputFolder: '../playwright-report' }],  //
+    ['json', { outputFile: '../test-results/results.json' }],
+    ['junit', { outputFile: '../test-results/junit.xml' }],
     ['list']
   ],
 
@@ -21,8 +21,6 @@ module.exports = defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    actionTimeout: 10000,
-    navigationTimeout: 30000,
   },
 
   projects: [
@@ -34,8 +32,8 @@ module.exports = defineConfig({
 
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
+    port: 5173,
+    reuseExistingServer: true,
     timeout: 120000,
   },
 });

@@ -43,8 +43,15 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('Lab3/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       
-      - name: Run Maven tests
+      - name: Run Maven tests with Allure
         run: mvn clean test
+      
+      - name: Upload Allure results from Maven
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-maven
+          path: Lab3/target/allure-results/
       
       - name: Upload Maven test results
         if: always()
@@ -83,6 +90,9 @@ jobs:
       
       - name: Install dependencies
         run: npm ci
+      
+      - name: Install Allure commandline
+        run: npm install -g allure-commandline
 
   # ============================================
   # JOB 3: UI тесты (Playwright)
@@ -118,8 +128,15 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install chromium --with-deps
       
-      - name: Run Playwright tests (auto-starts server)
+      - name: Run Playwright tests with Allure
         run: npm run test:ui
+      
+      - name: Upload Allure results from Playwright
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-playwright
+          path: atbp-lab5/allure-results/
       
       - name: Upload Playwright report
         if: always()
@@ -170,8 +187,15 @@ jobs:
             sleep 2
           done
       
-      - name: Run Cucumber tests
+      - name: Run Cucumber tests with Allure
         run: mvn test -Dtest="**/CucumberRunner"
+      
+      - name: Upload Allure results from Cucumber
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-cucumber
+          path: Lab3/target/allure-results/
       
       - name: Upload Cucumber reports
         if: always()
@@ -181,13 +205,79 @@ jobs:
           path: Lab3/target/cucumber-reports/
 
   # ============================================
-  # JOB 5: Telegram уведомление (РАБОЧАЯ ВЕРСИЯ)
+  # JOB 5: Генерация Allure отчета
+  # ============================================
+  allure-report:
+    name: Generate Allure Report
+    runs-on: ubuntu-latest
+    needs: [backend-tests, api-tests, ui-tests]
+    if: always()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install Allure commandline
+        run: npm install -g allure-commandline
+      
+      - name: Download all Allure results
+        uses: actions/download-artifact@v4
+        with:
+          path: all-allure-results
+      
+      - name: Merge Allure results
+        run: |
+          mkdir -p merged-allure-results
+          echo "Searching for Allure results..."
+          find all-allure-results -name "*.json" -exec cp {} merged-allure-results/ \; 2>/dev/null || true
+          find all-allure-results -name "*.txt" -exec cp {} merged-allure-results/ \; 2>/dev/null || true
+          find all-allure-results -name "*.png" -exec cp {} merged-allure-results/ \; 2>/dev/null || true
+          find all-allure-results -name "*.xml" -exec cp {} merged-allure-results/ \; 2>/dev/null || true
+          find all-allure-results -name "*.mp4" -exec cp {} merged-allure-results/ \; 2>/dev/null || true
+          find all-allure-results -name "*.webm" -exec cp {} merged-allure-results/ \; 2>/dev/null || true
+          echo "Merged $(ls merged-allure-results | wc -l) files"
+      
+      - name: Generate Allure report
+        run: allure generate merged-allure-results --clean -o allure-report
+      
+      - name: Upload Allure report as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report/
+      
+      - name: Deploy Allure report to GitHub Pages
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./allure-report
+          destination_dir: allure-reports/${{ github.run_number }}
+          keep_files: true
+      
+      - name: Get Allure report URL
+        id: allure-url
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]] || [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "url=https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/allure-reports/${{ github.run_number }}/" >> $GITHUB_OUTPUT
+          else
+            echo "url=Allure report available in workflow artifacts" >> $GITHUB_OUTPUT
+          fi
+
+  # ============================================
+  # JOB 6: Telegram уведомление (с Allure ссылкой)
   # ============================================
   notify-telegram:
     name: Send Telegram Notification
     runs-on: ubuntu-latest
-    needs: [backend-tests, api-tests, ui-tests]
-    if: always()  # ВАЖНО: отправляем всегда, даже при падении
+    needs: [backend-tests, api-tests, ui-tests, allure-report]
+    if: always()
     
     steps:
       - name: Check status
@@ -196,11 +286,20 @@ jobs:
           if [[ "${{ needs.backend-tests.result }}" == "success" ]] && \
              [[ "${{ needs.api-tests.result }}" == "success" ]] && \
              [[ "${{ needs.ui-tests.result }}" == "success" ]]; then
-            echo "status= SUCCESS" >> $GITHUB_OUTPUT
+            echo "status=SUCCESS" >> $GITHUB_OUTPUT
             echo "emoji=✅" >> $GITHUB_OUTPUT
           else
-            echo "status= FAILED" >> $GITHUB_OUTPUT
+            echo "status=FAILED" >> $GITHUB_OUTPUT
             echo "emoji=❌" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Get Allure report URL from previous job
+        id: allure
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]] || [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "url=https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/allure-reports/${{ github.run_number }}/" >> $GITHUB_OUTPUT
+          else
+            echo "url=Artifact: allure-report (download from workflow artifacts)" >> $GITHUB_OUTPUT
           fi
       
       - name: Send Telegram message
@@ -220,6 +319,8 @@ jobs:
             • Backend (Maven): ${{ needs.backend-tests.result }}
             • API (Cucumber): ${{ needs.api-tests.result }}
             • UI (Playwright): ${{ needs.ui-tests.result }}
+            
+            Allure Report: ${{ steps.allure.outputs.url }}
             
             View details:
             https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}

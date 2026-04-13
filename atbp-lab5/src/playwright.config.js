@@ -1,9 +1,9 @@
-// playwright.config.js
+// atbp-lab5/playwright.config.js
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
-  testDir: './e2e/tests',  // Оставляем как у вас (если тесты в e2e/tests)
-  timeout: 30000,  // Добавляем глобальный таймаут (из моего)
+  testDir: './src/e2e/tests',  // ← ИСПРАВЛЕНО: полный путь от корня проекта
+  timeout: 30000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -11,18 +11,18 @@ export default defineConfig({
 
   reporter: [
     ['html', { outputFolder: 'playwright-report' }],
-    ['json', { outputFile: 'test-results/results.json' }],  // Для CI отчетов
-    ['junit', { outputFile: 'test-results/junit.xml' }],    // Для CI отчетов
-    ['list']  // Ваш list reporter
+    ['json', { outputFile: 'test-results/results.json' }],
+    ['junit', { outputFile: 'test-results/junit.xml' }],
+    ['list']
   ],
 
   use: {
-    baseURL: 'http://localhost:5173',  // ✅ ВАЖНО: Vite порт!
+    baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    actionTimeout: 10000,  // Оставляем ваш таймаут
-    navigationTimeout: 30000,  // Оставляем ваш таймаут
+    actionTimeout: 10000,
+    navigationTimeout: 30000,
   },
 
   projects: [
@@ -42,7 +42,7 @@ export default defineConfig({
 
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:5173',  // ✅ ВАЖНО: Vite порт!
+    url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
   },

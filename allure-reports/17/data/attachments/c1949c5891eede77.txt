@@ -1,0 +1,6 @@
+Навигация на http://localhost:5173
+Ввод ID фильма: tt005
+Ввод возраста: 18
+Установка сопровождения: false
+Отправка формы...
+Не дождались ответа от API: page.waitForResponse: Timeout 10000ms exceeded while waiting for event "response"

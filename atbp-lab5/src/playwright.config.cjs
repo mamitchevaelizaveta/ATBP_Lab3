@@ -13,6 +13,7 @@ module.exports = defineConfig({
     ['html', { outputFolder: '../playwright-report' }],  //
     ['json', { outputFile: '../test-results/results.json' }],
     ['junit', { outputFile: '../test-results/junit.xml' }],
+    ['allure-playwright', { outputFolder: 'allure-results' }],
     ['list']
   ],
 

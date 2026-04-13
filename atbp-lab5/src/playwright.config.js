@@ -1,8 +1,8 @@
-// atbp-lab5/playwright.config.js
-import { defineConfig, devices } from '@playwright/test';
+// atbp-lab5/playwright.config.cjs
+const { defineConfig, devices } = require('@playwright/test');
 
-export default defineConfig({
-  testDir: './src/e2e/tests',  // ← ИСПРАВЛЕНО: полный путь от корня проекта
+module.exports = defineConfig({
+  testDir: './src/e2e/tests',
   timeout: 30000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,

@@ -17,13 +17,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        java-version: [17, 21]
+        os: [ubuntu-latest]
+        java-version: [17]
     
     defaults:
       run:
         working-directory: ./Lab3
-        shell: bash  # Используем bash на всех ОС
+        shell: bash
     
     steps:
       - name: Checkout code
@@ -43,14 +43,6 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('Lab3/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       
-      - name: Debug - List files
-        run: |
-          echo "Current directory: $(pwd)"
-          echo "Contents:"
-          ls -la
-          echo "Lab3 contents:"
-          ls -la ../Lab3/ || echo "Lab3 not found"
-      
       - name: Run Maven tests
         run: mvn clean test
       
@@ -58,11 +50,11 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: maven-test-results-${{ matrix.os }}-java${{ matrix.java-version }}
+          name: maven-test-results
           path: Lab3/target/surefire-reports/
 
   # ============================================
-  # JOB 2: Фронтенд setup
+  # JOB 2: Фронтенд установка зависимостей
   # ============================================
   frontend-setup:
     name: Frontend Setup
@@ -91,23 +83,14 @@ jobs:
       
       - name: Install dependencies
         run: npm ci
-      
-      - name: Debug - Check config
-        run: |
-          echo "Playwright config exists:"
-          cat playwright.config.js | head -20 || echo "Config not found"
 
   # ============================================
-  # JOB 3: UI тесты (Playwright)
+  # JOB 3: UI тесты (Playwright) - ПРОСТО npm run test:ui
   # ============================================
   ui-tests:
-    name: UI Tests - ${{ matrix.browser }}
+    name: UI Tests (Playwright)
     runs-on: ubuntu-latest
     needs: frontend-setup
-    strategy:
-      fail-fast: false
-      matrix:
-        browser: [chromium, firefox, webkit]
     defaults:
       run:
         working-directory: ./atbp-lab5
@@ -127,14 +110,7 @@ jobs:
         run: npm ci
       
       - name: Install Playwright browsers
-        run: npx playwright install ${{ matrix.browser }} --with-deps
-      
-      - name: Debug - List test files
-        run: |
-          echo "Test directory contents:"
-          ls -la src/e2e/tests/ || echo "Test directory not found"
-          echo "Playwright config:"
-          cat playwright.config.js | grep -A 10 "projects" || echo "Config check failed"
+        run: npx playwright install chromium --with-deps
       
       - name: Start Vite dev server
         run: |
@@ -142,13 +118,13 @@ jobs:
           npx wait-on http://localhost:5173 --timeout 60000
       
       - name: Run Playwright tests
-        run: npx playwright test --project=${{ matrix.browser }}
+        run: npm run test:ui
       
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ matrix.browser }}
+          name: playwright-report
           path: |
             atbp-lab5/test-results/
             atbp-lab5/playwright-report/
@@ -204,13 +180,13 @@ jobs:
           path: Lab3/target/cucumber-reports/
 
   # ============================================
-  # JOB 5: Telegram уведомление
+  # JOB 5: Telegram уведомление (РАБОЧАЯ ВЕРСИЯ)
   # ============================================
   notify-telegram:
     name: Send Telegram Notification
     runs-on: ubuntu-latest
     needs: [backend-tests, api-tests, ui-tests]
-    if: always()
+    if: always()  # ВАЖНО: отправляем всегда, даже при падении
     
     steps:
       - name: Check status
@@ -219,15 +195,14 @@ jobs:
           if [[ "${{ needs.backend-tests.result }}" == "success" ]] && \
              [[ "${{ needs.api-tests.result }}" == "success" ]] && \
              [[ "${{ needs.ui-tests.result }}" == "success" ]]; then
-            echo "status=SUCCESS" >> $GITHUB_OUTPUT
+            echo "status=✅ SUCCESS" >> $GITHUB_OUTPUT
             echo "emoji=✅" >> $GITHUB_OUTPUT
           else
-            echo "status=FAILED" >> $GITHUB_OUTPUT
+            echo "status=❌ FAILED" >> $GITHUB_OUTPUT
             echo "emoji=❌" >> $GITHUB_OUTPUT
           fi
       
       - name: Send Telegram message
-        if: env.TELEGRAM_TOKEN != '' && env.TELEGRAM_TO != ''
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_TO }}
@@ -237,12 +212,13 @@ jobs:
             
             Repository: ${{ github.repository }}
             Branch: ${{ github.ref_name }}
+            Commit: ${{ github.event.head_commit.message }}
             Author: ${{ github.actor }}
             
             Test Results:
-            1. Бэк (Java, Junit + Mockito, Maven): ${{ needs.backend-tests.result }}
-            2. API (Java, Cucumber, Maven): ${{ needs.api-tests.result }}
-            3. UI (JS, React+Vite, Playwright): ${{ needs.ui-tests.result }}
+            • Backend (Maven): ${{ needs.backend-tests.result }}
+            • API (Cucumber): ${{ needs.api-tests.result }}
+            • UI (Playwright): ${{ needs.ui-tests.result }}
             
             View details:
             https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}

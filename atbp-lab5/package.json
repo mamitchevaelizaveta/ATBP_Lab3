@@ -7,13 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test:ui": "npx playwright test --config=playwright.config.cjs",
-    "test:ui:headed": "npx playwright test --headed --config=playwright.config.cjs",
-    "test:ui:debug": "npx playwright test --debug --config=playwright.config.cjs",
-    "test:ui:report": "npx playwright show-report",
-    "test:ui:chromium": "npx playwright test --project=chromium --config=playwright.config.cjs",
-    "test:ui:firefox": "npx playwright test --project=firefox --config=playwright.config.cjs",
-    "test:ui:webkit": "npx playwright test --project=webkit --config=playwright.config.cjs"
+    "test:ui": "npx playwright test --config=playwright.config.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",

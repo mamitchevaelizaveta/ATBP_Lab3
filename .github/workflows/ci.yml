@@ -85,7 +85,7 @@ jobs:
         run: npm ci
 
   # ============================================
-  # JOB 3: UI тесты (Playwright) - ПРОСТО npm run test:ui
+  # JOB 3: UI тесты (Playwright)
   # ============================================
   ui-tests:
     name: UI Tests (Playwright)
@@ -109,15 +109,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
+      - name: Debug - Check config
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Config file:"
+          cat playwright.config.cjs | head -30
+      
       - name: Install Playwright browsers
         run: npx playwright install chromium --with-deps
       
-      - name: Start Vite dev server
-        run: |
-          npm run dev &
-          npx wait-on http://localhost:5173 --timeout 60000
-      
-      - name: Run Playwright tests
+      - name: Run Playwright tests (auto-starts server)
         run: npm run test:ui
       
       - name: Upload Playwright report

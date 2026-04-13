@@ -233,13 +233,9 @@ jobs:
       - name: Merge Allure results
         run: |
           mkdir -p merged-allure-results
-          echo "Searching for Allure results..."
           find all-allure-results -name "*.json" -exec cp {} merged-allure-results/ \; 2>/dev/null || true
           find all-allure-results -name "*.txt" -exec cp {} merged-allure-results/ \; 2>/dev/null || true
           find all-allure-results -name "*.png" -exec cp {} merged-allure-results/ \; 2>/dev/null || true
-          find all-allure-results -name "*.xml" -exec cp {} merged-allure-results/ \; 2>/dev/null || true
-          find all-allure-results -name "*.mp4" -exec cp {} merged-allure-results/ \; 2>/dev/null || true
-          find all-allure-results -name "*.webm" -exec cp {} merged-allure-results/ \; 2>/dev/null || true
           echo "Merged $(ls merged-allure-results | wc -l) files"
       
       - name: Generate Allure report
@@ -256,7 +252,7 @@ jobs:
         if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          personal_token: ${{ secrets.DEPLOY_TOKEN }}  # ← Используем PAT вместо GITHUB_TOKEN
           publish_dir: ./allure-report
           destination_dir: allure-reports/${{ github.run_number }}
           keep_files: true

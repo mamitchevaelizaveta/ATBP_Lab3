@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test:ui": "npx playwright test --config=playwright.config.cjs"
+    "test:ui": "npx playwright test --config=src/playwright.config.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",

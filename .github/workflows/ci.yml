@@ -2,16 +2,15 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [ master, main, develop ]
   pull_request:
     branches: [ master, main ]
-  workflow_dispatch:  # Ручной запуск
-
-env:
-  ALLURE_RESULTS_DIR: allure-results
+  workflow_dispatch:
 
 jobs:
+  # ============================================
   # JOB 1: Бэкенд тесты (Java + Spring + Maven)
+  # ============================================
   backend-tests:
     name: Backend Tests - Java ${{ matrix.java-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -20,6 +19,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
         java-version: [17, 21]
+    
+    defaults:
+      run:
+        working-directory: ./Lab3  # директория бэка!!!
     
     steps:
       - name: Checkout code
@@ -36,8 +39,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-m2-${{ hashFiles('Lab3/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
+      
+      - name: List files for debugging
+        run: |
+          pwd
+          ls -la
+          ls -la Lab3/ || echo "Lab3 folder not found"
       
       - name: Run Maven tests
         run: mvn clean test
@@ -47,13 +56,74 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: maven-test-results-${{ matrix.os }}-java${{ matrix.java-version }}
-          path: |
-            target/surefire-reports/
+          path: Lab3/target/surefire-reports/
 
-  # JOB 2: Фронтенд зависимости
+  # ============================================
+  # JOB 2: API тесты (Cucumber + Spring Boot)
+  # ============================================
+  api-tests:
+    name: API Tests (Cucumber)
+    runs-on: ubuntu-latest
+    needs: backend-tests
+    defaults:
+      run:
+        working-directory: ./Lab3  # директория бэка!!!
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('Lab3/pom.xml') }}
+      
+      - name: Start Spring Boot app
+        run: |
+          mvn spring-boot:run &
+          # Ждем запуска сервера
+          for i in {1..30}; do
+            if curl -s http://localhost:8080/actuator/health > /dev/null 2>&1; then
+              echo "Server is ready!"
+              break
+            fi
+            echo "Waiting for server... ($i/30)"
+            sleep 2
+          done
+      
+      - name: Run Cucumber API tests
+        run: mvn test -Dtest="**/CucumberRunner"
+      
+      - name: Upload Cucumber reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cucumber-reports
+          path: Lab3/target/cucumber-reports/
+
+  # ============================================
+  # JOB 3: Фронтенд зависимости
+  # ============================================
   frontend-setup:
     name: Frontend Setup
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./atbp-lab5
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -73,10 +143,11 @@ jobs:
           restore-keys: ${{ runner.os }}-node-modules-
       
       - name: Install dependencies
-        working-directory: atbp-lab5
         run: npm ci
 
-  # JOB 3: UI тесты (Playwright)
+  # ============================================
+  # JOB 4: UI тесты (Playwright)
+  # ============================================
   ui-tests:
     name: UI Tests - ${{ matrix.browser }}
     runs-on: ubuntu-latest
@@ -85,6 +156,9 @@ jobs:
       fail-fast: false
       matrix:
         browser: [chromium, firefox, webkit]
+    defaults:
+      run:
+        working-directory: ./atbp-lab5
     
     steps:
       - name: Checkout code
@@ -98,23 +172,18 @@ jobs:
           cache-dependency-path: 'atbp-lab5/package-lock.json'
       
       - name: Install dependencies
-        working-directory: atbp-lab5
         run: npm ci
       
       - name: Install Playwright browsers
-        working-directory: atbp-lab5
         run: npx playwright install ${{ matrix.browser }} --with-deps
       
       - name: Start Vite dev server
-        working-directory: atbp-lab5
         run: |
           npm run dev &
           npx wait-on http://localhost:5173 --timeout 60000
       
       - name: Run Playwright tests
-        working-directory: atbp-lab5
         run: npx playwright test --project=${{ matrix.browser }}
-        continue-on-error: true
       
       - name: Upload Playwright report
         if: always()
@@ -124,49 +193,10 @@ jobs:
           path: |
             atbp-lab5/test-results/
             atbp-lab5/playwright-report/
-            atbp-lab5/screenshots/
 
-  # JOB 4: API тесты (Cucumber + Spring Boot)
-  api-tests:
-    name: API Tests (Cucumber)
-    runs-on: ubuntu-latest
-    needs: backend-tests
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Setup Java JDK
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
-      
-      - name: Cache Maven dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-      
-      - name: Start Spring Boot app
-        run: |
-          mvn spring-boot:run &
-          npx wait-on http://localhost:8080 --timeout 120000
-      
-      - name: Run Cucumber API tests
-        run: mvn test -Dtest="**/CucumberRunner"
-      
-      - name: Upload Cucumber reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cucumber-reports
-          path: |
-            target/cucumber-reports/
-            target/surefire-reports/
-
+  # ============================================
   # JOB 5: Генерация Allure отчета
+  # ============================================
   allure-report:
     name: Generate Allure Report
     runs-on: ubuntu-latest
@@ -183,8 +213,7 @@ jobs:
           node-version: '20'
       
       - name: Install Allure
-        run: |
-          npm install -g allure-commandline
+        run: npm install -g allure-commandline
       
       - name: Download all test results
         uses: actions/download-artifact@v4
@@ -208,21 +237,14 @@ jobs:
         with:
           name: allure-report
           path: allure-report/
-      
-      - name: Deploy to GitHub Pages
-        if: github.ref == 'refs/heads/master'
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./allure-report
-          destination_dir: allure-reports/${{ github.run_number }}
-          keep_files: true
 
+  # ============================================
   # JOB 6: Telegram уведомление
+  # ============================================
   notify-telegram:
     name: Send Telegram Notification
     runs-on: ubuntu-latest
-    needs: [backend-tests, api-tests, ui-tests, allure-report]
+    needs: [backend-tests, api-tests, ui-tests]
     if: always()
     
     steps:
@@ -232,10 +254,10 @@ jobs:
           if [[ "${{ needs.backend-tests.result }}" == "success" ]] && \
              [[ "${{ needs.api-tests.result }}" == "success" ]] && \
              [[ "${{ needs.ui-tests.result }}" == "success" ]]; then
-            echo "status= SUCCESS" >> $GITHUB_OUTPUT
+            echo "status=✅ SUCCESS" >> $GITHUB_OUTPUT
             echo "emoji=✅" >> $GITHUB_OUTPUT
           else
-            echo "status= FAILED" >> $GITHUB_OUTPUT
+            echo "status=❌ FAILED" >> $GITHUB_OUTPUT
             echo "emoji=❌" >> $GITHUB_OUTPUT
           fi
       
@@ -249,16 +271,12 @@ jobs:
             
             Repository: ${{ github.repository }}
             Branch: ${{ github.ref_name }}
-            Commit: ${{ github.event.head_commit.message }}
             Author: ${{ github.actor }}
             
             Test Results:
-            • Backend: ${{ needs.backend-tests.result }}
+            • Backend (Maven): ${{ needs.backend-tests.result }}
             • API (Cucumber): ${{ needs.api-tests.result }}
             • UI (Playwright): ${{ needs.ui-tests.result }}
             
             View details:
             https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            
-            Allure Report:
-            https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/allure-reports/${{ github.run_number }}/
